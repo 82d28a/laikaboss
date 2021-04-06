@@ -13,7 +13,7 @@
 # limitations under the License.
 # 
 #  Set up classes
-from laikaboss.constants import level_minimal, level_metadata#, level_full
+from laikaboss.constants import level_minimal, level_metadata
 import time
 import uuid
 
@@ -42,6 +42,13 @@ def convertToUTF8(thing):
         return str(thing)
     else:
         return repr(thing)
+
+#Utility function to (conditionally) convert a unicode buffer to UTF-8
+def ensureNotUnicode(buffer):
+    if type(buffer) is unicode:
+        return buffer.encode('utf-8')
+    else:
+        return buffer
 
 def cleanKey(key):
     bad_chars = ['\0', '.', '$']
@@ -81,6 +88,7 @@ class ScanObject(object):
                        ephID = "",
                        uniqID = "",
                        parent = "",
+                       parent_order = -1,
                        sourceModule = "",
                        source = "",
                        depth = -1,
@@ -93,13 +101,14 @@ class ScanObject(object):
         self.scanModules = []
         self.flags = []
         self.objectHash = objectHash
-        self.buffer = buffer
+        self.buffer = ensureNotUnicode(buffer)
         self.objectSize = objectSize
         self.filename = filename
         self.ephID = convertToUTF8(ephID)
         self.uniqID = convertToUTF8(uniqID)
         self.uuid = str(uuid.uuid4())
         self.parent = parent
+        self.parent_order = parent_order
         self.sourceModule = convertToUTF8(sourceModule)
         self.source = convertToUTF8(source)
         self.moduleMetadata = {}
@@ -219,7 +228,7 @@ class ScanResult(object):
 
 class SI_Object(object):
     def __init__(self, buffer, externalVars):
-        self.buffer = buffer
+        self.buffer = ensureNotUnicode(buffer)
         self.externalVars = externalVars 
     buffer = ""
     externalVars = None
@@ -245,6 +254,7 @@ class ExternalVars(object):
                        source = "",
                        flags = "",
                        parent = "",
+                       parent_order = -1,
                        depth = 0,
                        origRootUID = "",
                        extMetaData = {}):
@@ -260,6 +270,7 @@ class ExternalVars(object):
         self.set_source(source)
         self.flags = flags
         self.parent = parent
+        self.parent_order = parent_order
         self.depth = depth
         self.set_origRootUID(origRootUID)
         self.set_extMetaData(extMetaData)
